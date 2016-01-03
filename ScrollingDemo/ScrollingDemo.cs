@@ -119,14 +119,14 @@ namespace ScrollingDemo
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            if ((Keyboard.GetState().IsKeyDown(Keys.F)) && (lastKeypress >= 500))
+            if ((Keyboard.GetState().IsKeyDown(Keys.F)) && (lastKeypress >= 250))
             {
                 graphics.ToggleFullScreen();
                 graphics.ApplyChanges();
                 lastKeypress = 0f;
             }
 
-            if ((Keyboard.GetState().IsKeyDown(Keys.V)) && (lastKeypress >= 500))
+            if ((Keyboard.GetState().IsKeyDown(Keys.V)) && (lastKeypress >= 250))
             {
                 enableVsync = !enableVsync;
                 graphics.SynchronizeWithVerticalRetrace = enableVsync;
@@ -184,7 +184,7 @@ namespace ScrollingDemo
 
             spriteBatch.DrawString(spriteFont, enableVsync ? @"vsync on" : @"vsync off", new Vector2(375, 30), Color.White);
             spriteBatch.DrawString(spriteFont, drawTime.TotalMilliseconds + @"ms", new Vector2(375, 10), Color.White);
-            spriteBatch.DrawString(spriteFont, @"press v to toggle vsync", new Vector2(275, 245), Color.White);
+            spriteBatch.DrawString(spriteFont, @"v=vsync  f=fullscreen", new Vector2(290, 245), Color.White);
 
             spriteBatch.End();
 
