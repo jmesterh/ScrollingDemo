@@ -139,6 +139,7 @@ namespace ScrollingDemo
             if (camera.Y <= 0) camera.Y = 3000 - ScreenTilesHigh - 1;
 
             base.Update(gameTime);
+
         }
         
         /// <summary>
@@ -154,7 +155,7 @@ namespace ScrollingDemo
             // Draw onto our render target first
             graphics.GraphicsDevice.SetRenderTarget(renderTarget);
 
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone, null);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
 
             // Render the map
             for (int row = 0; row <= ScreenTilesHigh; row++)
