@@ -46,6 +46,9 @@ namespace ScrollingDemo
 
         private SpriteFont spriteFont;
 
+        private int offset = 0;
+        private float scrollTimer;
+
         public ScrollingDemo()
         {
             IsFixedTimeStep = false;
@@ -54,6 +57,7 @@ namespace ScrollingDemo
                 PreferredBackBufferHeight = VirtualHeight*4,
                 PreferredBackBufferWidth = VirtualWidth*4,
                 IsFullScreen = false,
+                PreferMultiSampling = false,
                 SynchronizeWithVerticalRetrace = enableVsync // Disable vsync if frame timer is enabled
             };
             
@@ -133,9 +137,25 @@ namespace ScrollingDemo
                 graphics.ApplyChanges();
                 lastKeypress = 0f;
             }
-        
-            // Scroll map down
-            camera.Y -= (float)gameTime.ElapsedGameTime.TotalMilliseconds / 128;
+
+
+            // Scroll map down (imprecise method)
+            camera.Y -= (float)gameTime.ElapsedGameTime.TotalMilliseconds / 196;
+
+            // Scroll map down (sequential decrementation method)
+            //scrollTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            //if (scrollTimer > 16.67f)
+            //{
+            //    offset -= 1;
+            //    if (offset < 0)
+            //    {
+            //        offset = 15;
+            //        camera.Y--;
+            //    }
+            //    scrollTimer = 0;
+            //}
+
+            // Reset map to bottom if we go to far
             if (camera.Y <= 0) camera.Y = 3000 - ScreenTilesHigh - 1;
 
             base.Update(gameTime);
@@ -155,7 +175,7 @@ namespace ScrollingDemo
             // Draw onto our render target first
             graphics.GraphicsDevice.SetRenderTarget(renderTarget);
 
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
 
             // Render the map
             for (int row = 0; row <= ScreenTilesHigh; row++)
@@ -164,8 +184,11 @@ namespace ScrollingDemo
                 {
                     int tile = mapData[(int)camera.X + col, (int)camera.Y + row];
 
-                    int x = col * TileWidth;
-                    int y = (row * TileHeight) - (int)Math.Floor(MathHelper.Lerp(0, 16, (float)(camera.Y - Math.Truncate(camera.Y))));
+                    offset = (int) Math.Floor(MathHelper.Lerp(0, 15, (float) ((camera.Y - Math.Truncate(camera.Y))))); // imprecise method
+
+                    int x = col * TileWidth;                    
+                    int y = (row * TileHeight) - offset;
+
 
                     Rectangle tileSprite = new Rectangle(
                         tile * TileWidth,
@@ -182,9 +205,10 @@ namespace ScrollingDemo
                 }
             }
 
-
             spriteBatch.DrawString(spriteFont, enableVsync ? @"vsync on" : @"vsync off", new Vector2(375, 30), Color.White);
             spriteBatch.DrawString(spriteFont, drawTime.TotalMilliseconds + @"ms", new Vector2(375, 10), Color.White);
+            spriteBatch.DrawString(spriteFont, camera.Y.ToString(), new Vector2(375, 60), Color.White);
+
             spriteBatch.DrawString(spriteFont, @"v=vsync  f=fullscreen", new Vector2(290, 245), Color.White);
 
             spriteBatch.End();
