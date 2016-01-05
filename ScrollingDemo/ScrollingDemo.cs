@@ -136,6 +136,7 @@ namespace ScrollingDemo
             if ((Keyboard.GetState().IsKeyDown(Keys.S)) && (lastKeypress >= 250))
             {
                 scrollSpeed++;
+                if ((scrollSpeed % 2 == 1) && scrollSpeed != 1) scrollSpeed++; // smooth scrolling speeds only
                 if ((scrollSpeed) > 16) scrollSpeed = 1;
                 lastKeypress = 0f;
             }
