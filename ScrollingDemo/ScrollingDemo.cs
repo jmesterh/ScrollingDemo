@@ -49,6 +49,9 @@ namespace ScrollingDemo
         private int offset = 0;
         private float scrollTimer;
 
+        // Speed of scrolling
+        private int scrollSpeed = 1;
+
         public ScrollingDemo()
         {
             IsFixedTimeStep = false;
@@ -130,6 +133,13 @@ namespace ScrollingDemo
                 lastKeypress = 0f;
             }
 
+            if ((Keyboard.GetState().IsKeyDown(Keys.S)) && (lastKeypress >= 250))
+            {
+                scrollSpeed++;
+                if ((scrollSpeed) > 16) scrollSpeed = 1;
+                lastKeypress = 0f;
+            }
+
             if ((Keyboard.GetState().IsKeyDown(Keys.V)) && (lastKeypress >= 250))
             {
                 enableVsync = !enableVsync;
@@ -139,21 +149,18 @@ namespace ScrollingDemo
             }
 
 
-            // Scroll map down (imprecise method)
-            camera.Y -= (float)gameTime.ElapsedGameTime.TotalMilliseconds / 196;
-
-            // Scroll map down (sequential decrementation method)
-            //scrollTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-            //if (scrollTimer > 16.67f)
-            //{
-            //    offset -= 1;
-            //    if (offset < 0)
-            //    {
-            //        offset = 15;
-            //        camera.Y--;
-            //    }
-            //    scrollTimer = 0;
-            //}
+            //Scroll map down(sequential decrementation method)
+            scrollTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            if (scrollTimer > (1000f/60) || enableVsync)
+            {
+                offset -= scrollSpeed;
+                if (offset < 0)
+                {
+                    offset = 15;
+                    camera.Y--;
+                }
+                scrollTimer = 0;
+            }
 
             // Reset map to bottom if we go to far
             if (camera.Y <= 0) camera.Y = 3000 - ScreenTilesHigh - 1;
@@ -184,7 +191,7 @@ namespace ScrollingDemo
                 {
                     int tile = mapData[(int)camera.X + col, (int)camera.Y + row];
 
-                    offset = (int) Math.Floor(MathHelper.Lerp(0, 15, (float) ((camera.Y - Math.Truncate(camera.Y))))); // imprecise method
+                    //offset = (int) Math.Floor(MathHelper.Lerp(0, 15, (float) ((camera.Y - Math.Truncate(camera.Y))))); // imprecise method
 
                     int x = col * TileWidth;                    
                     int y = (row * TileHeight) - offset;
@@ -205,11 +212,11 @@ namespace ScrollingDemo
                 }
             }
 
-            spriteBatch.DrawString(spriteFont, enableVsync ? @"vsync on" : @"vsync off", new Vector2(375, 30), Color.White);
             spriteBatch.DrawString(spriteFont, drawTime.TotalMilliseconds + @"ms", new Vector2(375, 10), Color.White);
-            spriteBatch.DrawString(spriteFont, camera.Y.ToString(), new Vector2(375, 60), Color.White);
+            spriteBatch.DrawString(spriteFont, enableVsync ? @"vsync on" : @"vsync off", new Vector2(375, 30), Color.White);
+            spriteBatch.DrawString(spriteFont, @"speed: "+scrollSpeed, new Vector2(375, 50), Color.White);
 
-            spriteBatch.DrawString(spriteFont, @"v=vsync  f=fullscreen", new Vector2(290, 245), Color.White);
+            spriteBatch.DrawString(spriteFont, @"v=vsync  f=fullscreen  s=speed", new Vector2(210, 245), Color.White);
 
             spriteBatch.End();
 
