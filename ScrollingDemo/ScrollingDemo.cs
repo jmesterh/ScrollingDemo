@@ -15,12 +15,19 @@ namespace ScrollingDemo
         // Set to true to display time between each draw call
         private Boolean enableVsync = true;
 
+        // Measures actual time between draw calls
         private readonly Stopwatch stopWatch = new Stopwatch();
 
         readonly GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
         private RenderTarget2D renderTarget;
+        SpriteBatch spriteBatch;
+
         private float lastKeypress = 1000f;
+
+        // Updates per second
+        private int updateCounter = 1;
+        private int updatesPerSecond = 0;
+        private double lastUpdated;
 
         // Internal resolution
         const int VirtualWidth = 480;
@@ -45,22 +52,23 @@ namespace ScrollingDemo
         private Vector2 camera = new Vector2(0, 3000 - ScreenTilesHigh-1);
 
         private SpriteFont spriteFont;
-
-        private int offset = 0;
-        private float scrollTimer;
-
+        
         // Speed of scrolling
+        private int offset = 0;
+        private double scrollElapsed;
         private int scrollSpeed = 1;
 
         public ScrollingDemo()
         {
             IsFixedTimeStep = false;
+
             graphics = new GraphicsDeviceManager(this)
             {
-                PreferredBackBufferHeight = VirtualHeight*4,
-                PreferredBackBufferWidth = VirtualWidth*4,
+                PreferredBackBufferWidth = VirtualWidth * 4,
+                PreferredBackBufferHeight = VirtualHeight * 4,
                 IsFullScreen = false,
                 PreferMultiSampling = false,
+                HardwareModeSwitch = true,
                 SynchronizeWithVerticalRetrace = enableVsync // Disable vsync if frame timer is enabled
             };
             
@@ -151,25 +159,38 @@ namespace ScrollingDemo
 
 
             //Scroll map down(sequential decrementation method)
-            scrollTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-            if (scrollTimer > (1000f/60) || enableVsync)
-            {
-                offset -= scrollSpeed;
+            scrollElapsed += gameTime.ElapsedGameTime.TotalMilliseconds;
+            if (scrollElapsed >= (1000d/60d) || enableVsync)
+                {
+                    offset -= scrollSpeed;
                 if (offset < 0)
                 {
                     offset = 15;
                     camera.Y--;
                 }
-                scrollTimer = 0;
+                scrollElapsed = 0;
             }
 
             // Reset map to bottom if we go to far
             if (camera.Y <= 0) camera.Y = 3000 - ScreenTilesHigh - 1;
 
+            // Keep track of updates per second
+            lastUpdated += gameTime.ElapsedGameTime.TotalMilliseconds;
+            if (lastUpdated >= 1000)
+            {
+                updatesPerSecond = updateCounter;
+                lastUpdated = 0f;
+                updateCounter = 1;
+            }
+            else
+            {
+                updateCounter++;
+            }
+
             base.Update(gameTime);
 
         }
-        
+
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
@@ -192,12 +213,9 @@ namespace ScrollingDemo
                 {
                     int tile = mapData[(int)camera.X + col, (int)camera.Y + row];
 
-                    //offset = (int) Math.Floor(MathHelper.Lerp(0, 15, (float) ((camera.Y - Math.Truncate(camera.Y))))); // imprecise method
-
                     int x = col * TileWidth;                    
                     int y = (row * TileHeight) - offset;
-
-
+                    
                     Rectangle tileSprite = new Rectangle(
                         tile * TileWidth,
                         0,
@@ -215,7 +233,8 @@ namespace ScrollingDemo
 
             spriteBatch.DrawString(spriteFont, drawTime.TotalMilliseconds + @"ms", new Vector2(375, 10), Color.White);
             spriteBatch.DrawString(spriteFont, enableVsync ? @"vsync on" : @"vsync off", new Vector2(375, 30), Color.White);
-            spriteBatch.DrawString(spriteFont, @"speed: "+scrollSpeed, new Vector2(375, 50), Color.White);
+            spriteBatch.DrawString(spriteFont, @"ups: " + updatesPerSecond, new Vector2(375, 50), Color.White);
+            spriteBatch.DrawString(spriteFont, @"speed: "+scrollSpeed, new Vector2(375, 70), Color.White);
 
             spriteBatch.DrawString(spriteFont, @"v=vsync  f=fullscreen  s=speed", new Vector2(210, 245), Color.White);
 
@@ -225,7 +244,7 @@ namespace ScrollingDemo
             graphics.GraphicsDevice.SetRenderTarget(null);
             graphics.GraphicsDevice.Clear(ClearOptions.Target, Color.Black, 1.0f, 0);
 
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, SamplerState.PointClamp);
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied,SamplerState.PointClamp);
             spriteBatch.Draw(renderTarget, new Rectangle(0,0,graphics.PreferredBackBufferWidth,graphics.PreferredBackBufferHeight), Color.White);
             spriteBatch.End();
 
