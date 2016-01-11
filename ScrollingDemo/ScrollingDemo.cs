@@ -26,7 +26,7 @@ namespace ScrollingDemo
 
         // Updates per second
         private int updateCounter = 1;
-        private int updatesPerSecond = 0;
+        private int updatesPerSecond;
         private double lastUpdated;
 
         // Internal resolution
@@ -49,12 +49,11 @@ namespace ScrollingDemo
         private Texture2D tileSet;
 
         // Starts at the bottom of the map
-        private Vector2 camera = new Vector2(0, 3000 - ScreenTilesHigh-1);
+        private Vector2 camera = new Vector2(0, ((3000 - ScreenTilesHigh-1)*TileHeight));
 
         private SpriteFont spriteFont;
         
         // Speed of scrolling
-        private int offset = 0;
         private double scrollElapsed;
         private int scrollSpeed = 1;
 
@@ -144,7 +143,6 @@ namespace ScrollingDemo
             if ((Keyboard.GetState().IsKeyDown(Keys.S)) && (lastKeypress >= 250))
             {
                 scrollSpeed++;
-                if ((scrollSpeed % 2 == 1) && scrollSpeed != 1) scrollSpeed++; // smooth scrolling speeds only
                 if ((scrollSpeed) > 16) scrollSpeed = 1;
                 lastKeypress = 0f;
             }
@@ -160,14 +158,8 @@ namespace ScrollingDemo
 
             //Scroll map down(sequential decrementation method)
             scrollElapsed += gameTime.ElapsedGameTime.TotalMilliseconds;
-            if (scrollElapsed >= (1000d/60d) || enableVsync)
-                {
-                    offset -= scrollSpeed;
-                if (offset < 0)
-                {
-                    offset = 15;
-                    camera.Y--;
-                }
+            if (scrollElapsed >= (1000d/60d) || enableVsync) {
+                camera.Y -= scrollSpeed;
                 scrollElapsed = 0;
             }
 
@@ -176,7 +168,7 @@ namespace ScrollingDemo
 
             // Keep track of updates per second
             lastUpdated += gameTime.ElapsedGameTime.TotalMilliseconds;
-            if (lastUpdated >= 1000)
+            if (lastUpdated >= 1000f)
             {
                 updatesPerSecond = updateCounter;
                 lastUpdated = 0f;
@@ -211,11 +203,13 @@ namespace ScrollingDemo
             {
                 for (int col = 0; col < ScreenTilesWide; col++)
                 {
-                    int tile = mapData[(int)camera.X + col, (int)camera.Y + row];
+                    int x = (int)camera.X / 16;
+                    int y = (int)camera.Y / 16;
+                    int tile = mapData[x + col, y + row];
 
-                    int x = col * TileWidth;                    
-                    int y = (row * TileHeight) - offset;
-                    
+                    int xoff = (int)camera.X & (TileWidth - 1);
+                    int yoff = (int)camera.Y & (TileHeight -1);
+
                     Rectangle tileSprite = new Rectangle(
                         tile * TileWidth,
                         0,
@@ -224,7 +218,7 @@ namespace ScrollingDemo
 
                     spriteBatch.Draw(
                         tileSet,
-                        new Rectangle(x, y, TileWidth, TileHeight),
+                        new Rectangle((col * TileWidth - xoff), (row * TileHeight - yoff) , TileWidth, TileHeight),
                         tileSprite,
                         Color.White);
 
