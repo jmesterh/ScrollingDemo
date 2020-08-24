@@ -5,5 +5,4 @@
 ## monogame
 
 * [Monogame thingy](monogame/monogame-thingy.md)
-* [Untitled](monogame/untitled.md)
 
