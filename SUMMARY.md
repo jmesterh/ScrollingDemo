@@ -1,8 +1,4 @@
 # Table of contents
 
-* [Initial page](README.md)
-
-## API
-
-* [Untitled](api/untitled.md)
+* [Scrolling Demo](README.md)
 
